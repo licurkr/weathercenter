@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Apollo Beach Weather - Future Radar</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #f4f6f7;
+        color: #20272b;
+    }
+
+    .weather-center {
+        width: 100%;
+        max-width: 1500px;
+        margin: 0 auto;
+        background: white;
+    }
+
+    .header {
+        padding: 18px 20px 12px;
+        border-bottom: 1px solid #d8dee1;
+        background: white;
+    }
+
+    .title {
+        font-size: 27px;
+        font-weight: 700;
+        letter-spacing: .3px;
+        margin: 0;
+    }
+
+    .subtitle {
+        margin-top: 4px;
+        font-size: 14px;
+        color: #66747b;
+    }
+
+    .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 12px 20px;
+        background: #eef2f3;
+        border-bottom: 1px solid #d8dee1;
+    }
+
+    button {
+        border: 1px solid #aeb9bd;
+        background: white;
+        color: #263238;
+        padding: 9px 16px;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: .15s;
+    }
+
+    button:hover {
+        background: #e4eaec;
+    }
+
+    button.active {
+        background: #26383f;
+        color: white;
+        border-color: #26383f;
+    }
+
+    .map-wrapper {
+        position: relative;
+        width: 100%;
+        background: #172126;
+        overflow: hidden;
+    }
+
+    iframe {
+        display: block;
+        width: 100%;
+        height: 850px;
+        border: 0;
+        background: #172126;
+    }
+
+    .map-label {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        z-index: 5;
+        background: rgba(20, 29, 34, .88);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 5px;
+        font-size: 13px;
+        pointer-events: none;
+    }
+
+    .footer {
+        padding: 10px 15px;
+        font-size: 12px;
+        color: #69767b;
+        text-align: center;
+        border-top: 1px solid #d8dee1;
+        background: white;
+    }
+
+    @media (max-width: 700px) {
+
+        .title {
+            font-size: 22px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+        }
+
+        .controls {
+            padding: 10px;
+            gap: 6px;
+        }
+
+        button {
+            padding: 8px 11px;
+            font-size: 13px;
+        }
+
+        iframe {
+            height: 700px;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="weather-center">
+
+    <div class="header">
+        <div class="title">Apollo Beach Weather</div>
+        <div class="subtitle">
+            Future Radar • HREF Simulated Composite Reflectivity
+        </div>
+    </div>
+
+    <div class="controls">
+
+        <button
+            id="floridaBtn"
+            class="active"
+            onclick="showRadar('florida')">
+            FLORIDA
+        </button>
+
+        <button
+            id="southeastBtn"
+            onclick="showRadar('southeast')">
+            SOUTHEAST
+        </button>
+
+        <button
+            id="conusBtn"
+            onclick="showRadar('conus')">
+            CONUS
+        </button>
+
+        <button onclick="reloadRadar()">
+            ↻ REFRESH
+        </button>
+
+        <button onclick="openFullScreen()">
+            ⛶ FULL SCREEN
+        </button>
+
+    </div>
+
+    <div class="map-wrapper">
+
+        <div id="mapLabel" class="map-label">
+            Florida Future Radar
+        </div>
+
+        <iframe
+            id="radarFrame"
+            src="https://www.spc.noaa.gov/exper/href/?model=href&product=cref_members&sector=se"
+            allowfullscreen>
+        </iframe>
+
+    </div>
+
+    <div class="footer">
+        HREF data and imagery provided by NOAA / NWS Storm Prediction Center.
+        Future radar is model guidance and is not an observed radar product.
+    </div>
+
+</div>
+
+
+<script>
+
+    const radarFrame = document.getElementById("radarFrame");
+    const mapLabel = document.getElementById("mapLabel");
+
+    const buttons = {
+        florida: document.getElementById("floridaBtn"),
+        southeast: document.getElementById("southeastBtn"),
+        conus: document.getElementById("conusBtn")
+    };
+
+
+    function showRadar(region) {
+
+        Object.values(buttons).forEach(function(button) {
+            button.classList.remove("active");
+        });
+
+        buttons[region].classList.add("active");
+
+
+        if (region === "florida") {
+
+            /*
+             * Florida does not currently have its own SPC HREF
+             * sector. We use the Southeast sector and position
+             * the viewer around Florida.
+             */
+
+            radarFrame.src =
+                "https://www.spc.noaa.gov/exper/href/?model=href&product=cref_members&sector=se";
+
+            mapLabel.textContent =
+                "Florida Future Radar";
+
+        }
+
+
+        if (region === "southeast") {
+
+            radarFrame.src =
+                "https://www.spc.noaa.gov/exper/href/?model=href&product=cref_members&sector=se";
+
+            mapLabel.textContent =
+                "Southeast Future Radar";
+
+        }
+
+
+        if (region === "conus") {
+
+            radarFrame.src =
+                "https://www.spc.noaa.gov/exper/href/?model=href&product=cref_members&sector=conus";
+
+            mapLabel.textContent =
+                "CONUS Future Radar";
+
+        }
+
+    }
+
+
+    function reloadRadar() {
+
+        const currentURL = radarFrame.src;
+
+        radarFrame.src = "";
+
+        setTimeout(function() {
+            radarFrame.src = currentURL;
+        }, 100);
+
+    }
+
+
+    function openFullScreen() {
+
+        if (radarFrame.requestFullscreen) {
+
+            radarFrame.requestFullscreen();
+
+        } else if (radarFrame.webkitRequestFullscreen) {
+
+            radarFrame.webkitRequestFullscreen();
+
+        } else if (radarFrame.msRequestFullscreen) {
+
+            radarFrame.msRequestFullscreen();
+
+        }
+
+    }
+
+
+    /*
+     * Automatically refresh the NOAA viewer every 30 minutes.
+     *
+     * This does NOT change the model run.
+     * It simply makes sure the embedded viewer checks
+     * for newly available data.
+     */
+
+    setInterval(function() {
+
+        reloadRadar();
+
+    }, 30 * 60 * 1000);
+
+
+</script>
+
+</body>
+</html>
